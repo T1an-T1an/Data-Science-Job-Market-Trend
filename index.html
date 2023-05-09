@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How To Find a Job in Data Science</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 200vh;
+            overflow-x: hidden;
+        }
+
+
+        .background {
+            background-image: url("snow-mountain.jpg");
+            background-size: cover;
+            background-position: 50% 50%;
+            height: 200vh;
+            font: 900 39rem '';
+            line-height: 130vh;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .background::before {
+            content: '';
+            background-size: cover;
+            background-image: inherit;
+            background-position: 50% 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: -99;
+        }
+
+        h1 {
+            position: absolute;
+            text-align: center;
+            width: 100%;
+            letter-spacing: 10px;
+            color: #fff;
+        }
+
+        h2 {
+            position: absolute;
+            letter-spacing: 2px;
+            top: 120vh;
+            width: 60%;
+            color: #fff;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 30px;
+            
+        }
+        h3 {
+            position: absolute;
+            letter-spacing: 2px;
+            top: 130vh; 
+            width: 60%;
+            color: #fff;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 30px;
+            font-weight: normal;
+            }
+        .container {
+            position: relative;
+            
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .image {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            
+        }
+
+        .button-48 {
+            appearance: none;
+            background-color: #FFFFFF;
+            border-width: 0;
+            box-sizing: border-box;
+            color: #000000;
+            cursor: pointer;
+            font-family: Clarkson,Helvetica,sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0;
+            line-height: 1em;
+            margin: 0;
+            opacity: 1;
+            outline: 0;
+            padding: 1.5em 2.2em;
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: opacity 300ms cubic-bezier(.694, 0, 0.335, 1),background-color 100ms cubic-bezier(.694, 0, 0.335, 1),color 100ms cubic-bezier(.694, 0, 0.335, 1);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            vertical-align: baseline;
+            white-space: nowrap;
+            z-index: 1;
+            position: relative;
+        }
+
+        .button-48:before {
+            animation: opacityFallbackOut .5s step-end forwards;
+            backface-visibility: hidden;
+            background-color: #EBEBEB;
+            clip-path: polygon(-1% 0, 0 0, -25% 100%, -1% 100%);
+            content: "";
+            height: 100%;
+            left: 0;
+            position: absolute;
+            top: 0;
+            transform: translateZ(0);
+            transition: clip-path .5s cubic-bezier(.165, 0.84, 0.44, 1), -webkit-clip-path .5s cubic-bezier(.165, 0.84, 0.44, 1);
+            width: 100%;
+            
+        }
+
+        .button-48:hover:before {
+            animation: opacityFallbackIn 0s step-start forwards;
+            clip-path: polygon(0 0, 101% 0, 101% 101%, 0 101%);
+            
+        }
+
+        .button-48:after {
+            background-color: #FFFFFF;
+            
+        }
+
+        .button-48 span {
+            position: relative;
+            z-index: 2;
+            
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>Analyzing Job Trends <br /> How to find a Data Science Related </h1>
+    <div class="background"><span>JOB </span></div>
+    <h2>
+        Analyzing Job Trends in the Analytics Field: Insights and Tips for Job Seekers
+    </h2>
+    <h3>
+        In recent years, the discipline of analytics has expanded significantly. There is a rising need for qualified experts who are able to interpret complicated data sets and provide conclusions to inform business decisions. As a result, the analytics job market is getting more and more competitive, and job searchers face a challenging environment of titles, requirements, and duties.
+        <br>
+        <br>
+        In this project, I examined employment trends in the data market using a dataset of pertinent job posts. I gave insight into the abilities and expertise needed for occupations using data by looking at the requirements and duties of various roles, as well as the number of opportunities available in various places.
+    </h3>
+    <button class="button-48" role="button" onclick="location.href='Data_Visualization/report.html'">Explore Project</button>
+    <p style="position: relative; bottom: 40px; left: 1500px; color: grey; font-style: italic;">Image from https://wallpapers.com/snow-mountain</p>
+    <script>
+        const background = document.querySelector(".background")
+
+        document.addEventListener('scroll', () => {
+            const scrollY = window.scrollY
+
+            if (scrollY !== 0) {
+                background.style.backgroundPosition = `calc(50% + ${scrollY}px) calc(50% + ${scrollY}px)`
+            }else{
+                background.style.backgroundPosition = ''
+            }
+        })
+    </script>
+
+</body>
+
+</html> 

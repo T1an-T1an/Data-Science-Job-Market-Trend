@@ -1,0 +1,604 @@
+---
+title: "Analyzing Job Trends in the Analytics Field: Insights and Tips for Job Seekers"
+author:
+  - name: jy736
+execute:
+    echo: false
+# output:
+#     html_document:
+#         smooth-scroll: true
+#     theme:
+#       light: cosmo
+
+#     highlight: zenburn
+#     toc: true
+#     toc_depth: 2
+#     margin-left: 5in
+#     margin-right: 5in
+#     pdf_document:
+#         toc: true
+format:
+  html:
+    #theme: Navbars
+    theme:
+        light: Cerulean
+        dark: darkly
+    embed-resources: true
+    code-fold: true
+    page-layout: full
+    fig-cap-location: bottom
+    tbl-cap-location: bottom
+    toc: true
+    toc-location: left
+    toc-title: Contents
+    # grid:
+    #   sidebar-width: 130px
+    #   body-width: 1000px
+
+# sidebar:
+#   contents: auto
+#reference-location: margin
+#citation-location: margin
+#bibliography: skeleton.bib
+---
+### 1. Introduction
+In recent years, the discipline of analytics has expanded significantly. There is a rising need for qualified experts who are able to interpret complicated data sets and provide conclusions to inform business decisions. As a result, the analytics job market is getting more and more competitive, and job searchers face a challenging environment of titles, requirements, and duties.
+
+In this project, I examined employment trends in the data market using a dataset of pertinent job posts. I gave insight into the abilities and expertise needed for occupations using data by looking at the requirements and duties of various roles, as well as the number of opportunities available in various places.
+
+### 2. Data
+After cleaning and merging two datsets, the data table below shows a brief look at the data I used in this project. 
+
+```{python}
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.subplots as sp
+import nltk
+#nltk.download('punkt')
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+#nltk.download('stopwords')
+from nltk.corpus import stopwords
+import re
+from tabulate import tabulate
+```
+
+```{python}
+#creat a data table by plotly
+job_us = pd.read_csv('../Data Set/combined_df.csv')
+job_us = job_us.drop(columns=['job_id'])
+job_us.head()
+```
+
+
+
+The data was collected provided by DSAN in Georgetown University. The data includes the following columns: title, company name, location, salary, job description, and searching keyword. The searching keyword column is a column I added to the dataset. It includes the job title and the searching keyword I used to search for the job. The searching keyword column is used to group the data by job title.
+
+
+
+
+
+```{python}
+job_us = pd.read_csv('../Data Set/combined_df.csv')
+
+position_counts = job_us.groupby('company_name')['title'].count().sort_values(ascending=False)
+position_counts = pd.DataFrame(position_counts)
+position_counts = position_counts.reset_index()
+#change column name title to count
+position_counts = position_counts.rename(columns={'title': 'count'})
+#position_counts
+
+city_counts = job_us.groupby('location')['title'].count().sort_values(ascending=False)
+city_counts = pd.DataFrame(city_counts)
+city_counts = city_counts.reset_index()
+# change column name title to count
+city_counts = city_counts.rename(columns={'title': 'count'})
+# remove location = Anywhere and United States
+city_counts = city_counts[city_counts['location'] != ' Anywhere ']
+city_counts = city_counts[city_counts['location'] != '  United States   ']
+```
+
+### 3. Top 10 Companies and Cities for Data Job Postings
+
+```{python}
+#| layout: [[45, 45], [100]]
+#| label: fig-charts
+#| fig-subcap: 
+#|   - "Top 10 Companies with Most Job Postings"
+#|   - "Top 10 Cities with Most Job Postings"
+#| fig-cap: "Top 10 Companies and Top 10 Cities with Most Job Postings"
+
+
+#create a bar chart for the top 10 companies with the most job postings
+fig1 = px.bar(position_counts.head(10), x='count', y='company_name', title='Top 10 Companies with Most Job Postings', orientation='h', text='count')
+fig1.update_layout(
+    template='plotly_white',
+    title={
+        'text': 'Top 10 Companies with Most Job Postings',
+        'font': {'size': 24, 'family': 'Arial'}
+    },
+    xaxis_title={
+        'text': 'Count',
+        'font': {'size': 18, 'family': 'Arial'}
+    },
+    yaxis_title={
+        'text': 'Company Name',
+        'font': {'size': 18, 'family': 'Arial'}
+    },
+    yaxis={'categoryorder':'total ascending'},
+)
+
+#change the color of the bars
+fig1.update_traces(marker_color='#99A686', selector=dict(type='bar', xaxis='x'))
+
+fig1.show()
+
+#create a bar chart for the top 10 cities with the most job postings
+fig2 = px.bar(city_counts.head(10), x='count', y='location', title='Top 10 Cities with Most Job Postings', orientation='h', text='count')
+fig2.update_layout(
+    template='plotly_white',
+    title={
+        'text': 'Top 10 Cities with Most Job Postings',
+        'font': {'size': 24, 'family': 'Arial'}
+    },
+    xaxis_title={
+        'text': 'Count',
+        'font': {'size': 18, 'family': 'Arial'}
+    },
+    yaxis_title={
+        'text': 'City',
+        'font': {'size': 18, 'family': 'Arial'}
+    },
+    yaxis={'categoryorder':'total ascending'},
+)
+
+#change the color of the bars
+fig2.update_traces(marker_color='#D9B573', selector=dict(type='bar', xaxis='x'))
+
+fig2.show()
+
+```
+
+Fig-1 displays the top 10 cities and companies that are currently offering jobs. The list of the top ten companies includes those from diverse fields such as internet, retail, finance, and more. UPWORK is at the top of the list, offering the most sought-after jobs, perhaps because it specializes in connecting growing businesses with exceptional talent and agencies.
+
+Most of the cities with the highest number of jobs are large cities like New York, Washington DC, and California. While large cities do offer more job opportunities, it does not necessarily imply an absolute advantage for data-related jobs. The large number of job openings also corresponds to a sizable resident population, which could result in intense competition for applicants.
+
+```{python}
+job_us['location'] = job_us['location'].str.replace(' ', '')
+job_us = job_us[~job_us['location'].str.contains('UnitedStates')]
+
+#mapping dictionary for converting full state names to abbreviations
+state_mapping = {
+    'NewYork': 'NY',
+    'Washington': 'WA',
+    'Texas': 'TX',
+    'California': 'CA',
+    'Illinois': 'IL',
+    'Missouri': 'MO',
+    'Maryland': 'MD',
+    'California(+1other)': 'CA',
+    'Ohio(+1other)': 'OH',
+    'Texas(+5others)': 'TX',
+    'Missouri(+1other)': 'MO',
+    #'Anywhere': 'workfromhome',
+}
+
+#convert full state names to abbreviations
+job_us['location'] = job_us['location'].replace(state_mapping)
+
+#a regular expression pattern
+pattern = r'([A-Z]{2})'
+
+# extract the state abbreviation
+job_us['state'] = job_us['location'].str.extract(pattern)
+
+# fill in the missing values with WFH
+job_us['state'].fillna('WFH', inplace=True)
+#job_us
+```
+
+
+### 4. Job Trends by State
+```{python}
+#| label: fig-charts1
+#| fig-cap: "Histogram of Different Jobs by State"
+
+# replace 'time series' with 'time series analysis', because they are basically the same
+import plotly.subplots as sp
+import plotly.graph_objs as go
+
+#replace 'time series' with 'time series analysis' in the 'searching keyword' column
+job_us['searching keyword'] = job_us['searching keyword'].replace('time series', 'time series analysis')
+
+#find the top 6 states with the highest count of searching keywords
+top_6_states = job_us['state'].value_counts().head(6).index
+
+#filter the dataframe to include only the top 6 states
+job_us_top_6_states = job_us[job_us['state'].isin(top_6_states)]
+
+#get the unique searching keywords
+unique_keywords = job_us_top_6_states['searching keyword'].unique()
+
+#define the number of rows and columns for the subplot grid
+num_cols = 4
+num_rows = 3
+
+#create an empty list to store the subplot titles
+subplot_titles = []
+
+#loop through each unique keyword and append the title to the list
+for keyword in unique_keywords:
+    subplot_titles.append(keyword.title())
+
+#define the colors to use for the subplots
+colors = ['#204473', '#30618C', '#7292A6', '#99A686', '#D9B573'] * 2
+
+#create a subplot grid to show all types of searching keywords
+fig = sp.make_subplots(
+    rows=num_rows,
+    cols=num_cols,
+    subplot_titles=subplot_titles,
+    shared_yaxes=True,
+    vertical_spacing=0.15,
+    horizontal_spacing=0.05
+)
+
+#create a histogram for each type of searching keyword
+for i, keyword in enumerate(unique_keywords, start=1):
+    data = job_us_top_6_states[job_us_top_6_states['searching keyword'] == keyword]
+    counts = data['state'].value_counts().reindex(top_6_states).fillna(0)
+    counts_sorted = counts.sort_values(ascending=False)
+    color = colors[i-1] # Select color for this subplot
+    trace = go.Bar(x=counts_sorted.index, y=counts_sorted, text=counts_sorted, width=0.5, textposition='auto', name=keyword,
+                   textangle=0, # Rotate text to be vertical
+                   marker=dict(line=dict(width=0.5, color='black'), color=color)) 
+    row = (i - 1) // num_cols + 1
+    col = (i - 1) % num_cols + 1
+    fig.add_trace(trace, row=row, col=col)
+
+    #update the x-axis and y-axis titles for each subplot
+    fig.update_xaxes(title_text='<b>State</b>', title_font=dict(family='Arial', size=12), row=row, col=col)
+    fig.update_yaxes(title_text='<b>Count</b>', title_font=dict(family='Arial', size=12), row=row, col=col)
+
+#change subplot titles font
+fig.update_annotations(font=dict(family='Arial', size=14))
+
+#set the layout
+fig.update_layout(
+    template='plotly_white',
+    title='Histogram of Different Jobs by State',
+    title_font=dict(family='Arial', size=24),
+    showlegend=False,
+    height=800,
+    width=1200,
+)
+
+#show the plots
+fig.show()
+
+```
+
+::: {.callout-tip}
+## Note
+
+'WFH' means 'Work From Home'
+:::
+
+Fig-2 indicates that the trend of remote work continues to increase, especially in the data-related field. The 24-hour nature of cryptocurrency trading has resulted in a predominance of remote work options. However, even beyond the virtual currency industry, many companies offer work-from-home opportunities for their employees in the data-related field.
+
+While WFH has become the norm, California remains a top workplace for data-related jobs. California's Silicon Valley is known for its concentration of technology companies, making it a hub for job opportunities in this field. Additionally, California's tech industry is well-established, providing excellent resources for individuals seeking to advance their careers in this field.
+
+### 5. Qualifications and Responsibilities for Different Job Types
+
+```{python}
+#| label: fig-charts2
+#| fig-cap: "Word Clouds: Qualifications and Responsibilities for Each Job Type"
+#preprocess the text, remove stop words ( manully add some custom stop words)
+def preprocess_text(text):
+    text = text.lower()
+    tokens = nltk.word_tokenize(text)
+    tokens = [word for word in tokens if word.isalpha()]
+    stop_words = set(stopwords.words('english'))
+    custom_stop_words = ['etc', 'experience', 'strong', 'work', 'will', 'years', 'data', 'science', 'skills', 'knowledge', 'year', 'analysis', 'computer', 'skill', 'team', 'working', 'ability']
+    stop_words.update(custom_stop_words)
+    tokens = [word for word in tokens if word not in stop_words]
+    return ' '.join(tokens)
+
+#list all the unique searching keywords
+grouped = job_us.groupby('searching keyword')
+
+#main figure size
+fig, axes = plt.subplots(5, 4, figsize=(13.5, 10))
+# fig.tight_layout(h_pad=0.2, w_pad=0.2)
+
+#define some colors to use for the subplot titles
+colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink', 'gray', 'brown', 'olive', 'teal']
+
+#loop through the groups and create subplots
+for i, (keyword, group) in enumerate(grouped):
+    # Concatenate all the Qualifications and Responsibilities text for the group
+    qualifications_text = ' '.join(group['Qualifications'].dropna())
+    responsibilities_text = ' '.join(group['Responsibilities'].dropna())
+
+    #process the text
+    qualifications_text = preprocess_text(qualifications_text)
+    responsibilities_text = preprocess_text(responsibilities_text)
+
+    #word clouds
+    wc_qualifications = WordCloud(background_color='white').generate(qualifications_text)
+    wc_responsibilities = WordCloud(background_color='white').generate(responsibilities_text)
+
+    #row and column index for the subplot
+    row = i // 2
+    col = 2 * (i % 2)
+    #show qualifications in each subplot
+    ax_qualifications = axes[row, col]
+    ax_qualifications.imshow(wc_qualifications, interpolation='bilinear')
+    ax_qualifications.axis('off')
+
+    #make each title bold and add the keyword and color
+    ax_qualifications_title = ax_qualifications.text(0.5, 1.05, f"Quals: {keyword}", transform=ax_qualifications.transAxes, ha='center', fontweight='bold', color=colors[i])
+    
+    # show responsibilities in each subplot
+    ax_responsibilities = axes[row, col + 1]
+    ax_responsibilities.imshow(wc_responsibilities, interpolation='bilinear')
+    ax_responsibilities.axis('off')
+
+    #make each title bold and add the keyword and color
+    ax_responsibilities_title = ax_responsibilities.text(0.5, 1.05, f"Resps: {keyword}", transform=ax_responsibilities.transAxes, ha='center', fontweight='bold', color=colors[i])
+
+#make these plots closer together
+fig.tight_layout()
+
+plt.show()
+```
+
+::: {.callout-tip}
+## Note
+
+'Quals' means 'Qualifications'  
+'Resps' means 'Responsibilities'
+:::
+
+
+|                              | Qualifications:                                                                    | Responsibilities                                               |
+|------------------------------|------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| Big Data and Cloud Computing | Distributed Computing,  Cloud distributed                                          | Software development,   Solution, Customer                     |
+| Block Chain                  | Smart contract, Security                                                           | Development, Security, Solution, Product                       |
+| Data Analyst                 | Business, Management, SQL, Bachelor degree                                         | Report, Support, Management, Business, Develop                 |
+| Data Scientist               | Python, Machine learning, Analytic, Engineering                                    | Model, Analytic, Bussiness, Support, Develop                   |
+| Deep Learning                | Deep learning, Machine Learning Product, Model, Solution, Customer                 | Model, Deep learning,  Machine Learning                        |
+| Natural Language Processing  | Natural language, Language processing, Machine Learning                            | Nlp, Model, Research, Project                                  |
+| Neural Networks              | Neural network, Deep learning, Pytorch, Tensorflow, Engineering                    | Design, Product, Neural network, Model, Research               |
+| Reinforcement Learning       | Machine learning, Deep Learning, Model, Python, Algorithm,  Reinforcement learning | Machine Learning, Research, Model, Solution, Product, Business |
+| Time Series Analysis         | Time series, Model, Python, Statistics, Machine Learning                           | Project, Model, Analytic, Business, Algorithm                  |
+: Summary for Each Word Cloud {#tbl-letters}
+
+From Figure-3 and Table-1, while Big Data and Cloud Computing focuses on distributed computing and cloud infrastructure, Blockchain is concerned with smart contracts and security. Data Analysis involves generating reports and managing data, while Data Science requires the creation of models and analysis of data. Deep Learning and Natural Language Processing are more specific and require expertise in deep and machine learning or natural language, language processing, and machine learning, respectively.
+
+Neural Networks, on the other hand, require knowledge in neural networks, deep learning, PyTorch, TensorFlow, and engineering, with a focus on designing products and managing projects. Reinforcement Learning requires knowledge of machine and deep learning, Python, algorithms, and reinforcement learning and requires research and product development. Time Series Analysis is concerned with managing projects and analyzing data, requiring knowledge of time series, Python, statistics, and machine learning.
+
+
+```{python}
+job_us['Qualifications'].fillna('', inplace=True)
+job_us['Responsibilities'].fillna('', inplace=True)
+tools = ['Python', 'R', 'SQL', 'C', 'C++', 'Java', 'JavaScript', 'Go', 'Scala', 'Julia', 'Swift', 'MATLAB', 
+         'SAS', 'Tableau', 'Power BI', 'QlikView', 'D3.js','Excel','Spark','Hive','Grafana','Looker','Alation',
+         'Kaizen', 'Reno','git', 'GitHub', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Linux','Databricks','DataHub','Nostradamus'] 
+text = ' '.join(job_us['Qualifications'].tolist()) + ' '.join(job_us['Responsibilities'].tolist())
+text = text.lower()
+tool_frequency = {}
+for tool in tools:
+    pattern = re.compile(r'\b' + re.escape(tool.lower()) + r'\b')
+    count = len(re.findall(pattern, text))
+    tool_frequency[tool] = count
+sorted_tools = sorted(tool_frequency.items(), key=lambda x: x[1], reverse=True)
+# for tool, count in sorted_tools:
+#     print(f'{tool}: {count}')
+```
+
+### 6. Skills Needed for Data Jobs
+```{python}
+#| label: fig-charts4
+#| fig-cap: "Skills Needed for Data Jobs (without considering the job type)"
+import re
+import plotly.graph_objs as go
+
+tools = ['Python', 'R', 'SQL', 'C', 'C++', 'Java', 'JavaScript', 'Go', 'Scala', 'Julia', 'Swift', 'MATLAB', 
+         'SAS', 'Tableau', 'Power BI', 'QlikView', 'D3.js','Excel','Spark','Hive','Grafana','Looker','Alation',
+         'Kaizen', 'Reno','git', 'GitHub', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Linux','Databricks','DataHub','Nostradamus'] 
+
+#join the 'Qualifications' and 'Responsibilities' columns into a single text string
+text = ' '.join(job_us['Qualifications'].tolist()) + ' '.join(job_us['Responsibilities'].tolist())
+text = text.lower()
+
+#count the frequency of each tool in the text
+tool_frequency = {}
+for tool in tools:
+    pattern = re.compile(r'\b' + re.escape(tool.lower()) + r'\b')
+    count = len(re.findall(pattern, text))
+    tool_frequency[tool] = count
+
+#sort the tools by frequency in descending order
+sorted_tools = sorted(tool_frequency.items(), key=lambda x: x[1], reverse=True)
+
+#create a list of x values (tools) and y values (counts)
+x_values = []
+y_values = []
+for tool, count in sorted_tools:
+    x_values.append(tool)
+    y_values.append(count)
+
+#create a line plot
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=x_values, y=y_values, mode='lines+markers', line=dict(color='#204473', width=2)))
+
+#set the font and sizes
+fig.update_layout(
+    template='plotly_white',
+    title={
+        'text': 'Common Skills Needed for Data Jobs',
+        'font': {
+            'family': 'Arial',
+            'size': 24
+        }
+    },
+    xaxis_title={
+        'text': 'Tool',
+        'font': {
+            'family': 'Arial',
+            'size': 18
+        }
+    },
+    yaxis_title={
+        'text': 'Frequency',
+        'font': {
+            'family': 'Arial',
+            'size': 18
+        }
+    }
+)
+
+#show the plot
+fig.show()
+
+```
+
+Based on the information from Figure-4, Python, Java, SQL, and R are the most commonly requested skills for data-related jobs in the US. Cloud computing skills are also highly desired, with AWS being the most requested cloud platform followed by Azure and GCP. Other commonly requested skills include Spark, Tableau, Scala, Excel, and C. Docker, Kubernetes, and Linux are also frequently requested for their containerization and infrastructure management capabilities. Some skills like C++, QlikView, D3.js, Alation, Kaizen, Reno, DataHub, Looker, Swift, Grafana, and Julia do not seem to be as in-demand in the current job market for data-related roles. Even though GitHub is not in the left figure, it is still a very important tool for data-related jobs.
+
+```{python}
+import pandas as pd
+import re
+
+tools = ['Python', 'R', 'SQL', 'C', 'C++', 'Java', 'JavaScript', 'Go', 'Scala', 'Julia', 'Swift', 'MATLAB', 
+         'SAS', 'Tableau', 'Power BI', 'QlikView', 'D3.js','Excel','Spark','Hive','Grafana','Looker','Alation',
+         'Kaizen', 'Reno','git', 'GitHub', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Linux','Databricks','DataHub','Nostradamus'] 
+
+#group the data by the 'searching keyword' column
+grouped_data = job_us.groupby('searching keyword')
+
+#store the top five tools for each group
+top_five_tools_by_group = {}
+
+#iterate through each group
+for group, data in grouped_data:
+    # Combine the 'Qualifications' and 'Responsibilities' text for the group
+    text = ' '.join(data['Qualifications'].tolist()) + ' '.join(data['Responsibilities'].tolist())
+    text = text.lower()
+    
+    #initialize a dictionary to store the frequency count of each tool for the group
+    tool_frequency = {}
+
+    #count the occurrences of each tool for the group
+    for tool in tools:
+        pattern = re.compile(r'\b' + re.escape(tool.lower()) + r'\b')
+        count = len(re.findall(pattern, text))
+        tool_frequency[tool] = count
+
+    #sort the tools by their frequency in descending order
+    sorted_tools = sorted(tool_frequency.items(), key=lambda x: x[1], reverse=True)
+    
+    #store the top five tools for the group in the main dictionary
+    top_five_tools_by_group[group] = sorted_tools[:5]
+
+#print the top five tools for each group
+# for group, top_five_tools in top_five_tools_by_group.items():
+#     print(f'Top five tools for group "{group}":')
+#     for tool, count in top_five_tools:
+#         print(f'  {tool}: {count}')
+
+```
+
+```{python}
+#| label: fig-charts3
+#| fig-cap: "Skills Needed for Data Jobs by Job Type"
+
+#create an empty list to store the group names and top five tools for each group
+group_names = []
+top_five_tools_list = []
+
+for group, top_five_tools in top_five_tools_by_group.items():
+    group_names.append(group)
+    top_five_tools_list.append(top_five_tools)
+
+#create lists to store the x and y values for the bar chart
+x_values = []
+y_values = []
+
+#loop through each group and append the x and y values to the lists
+for top_five_tools in top_five_tools_list:
+    x_group = []
+    y_group = []
+    for tool, count in top_five_tools:
+        x_group.append(tool)
+        y_group.append(count)
+    x_values.append(x_group)
+    y_values.append(y_group)
+
+#create a bar chart
+fig = go.Figure()
+
+for i in range(len(group_names)):
+    fig.add_trace(go.Bar(x=x_values[i], y=y_values[i], name=group_names[i], width=0.08))
+
+#set the font and sizes
+fig.update_layout(
+    template='plotly_white',
+    title={
+        'text': 'Common Skills Needed for Data Jobs by Job Type',
+        'font': {
+            'family': 'Arial',
+            'size': 24
+        }
+    },
+    xaxis_title={
+        'text': 'Tools',
+        'font': {
+            'family': 'Arial',
+            'size': 18
+        }
+    },
+    yaxis_title={
+        'text': 'Frequency',
+        'font': {
+            'family': 'Arial',
+            'size': 18
+        }
+    },
+        legend={
+        'font': {
+            'family': 'Arial',
+            'size': 14
+        }
+    }
+)
+
+#show the plot
+fig.show()
+
+```
+
+
+::: {.callout-tip}
+## Note
+
+Please Double Click the legend that you are interested in to show top five skills for each job type.
+:::
+
+Python is a popular tool across the majority of data-related job categories, including big data and cloud computing, data scientists, deep learning, machine learning, natural language processing, neural networks, reinforcement learning, and time series analysis, according to the provided data. Additionally, Java is frequently sought, especially for big data and cloud computing roles. For data analyst roles, SQL, Tableau, and Excel are regularly requested, whereas R and SAS are more typically requested for data scientist roles.
+
+Platforms for big data and cloud computing, blockchain, deep learning, machine learning, natural language processing, and reinforcement learning are all in high demand, with AWS being the most sought-after platform in all of these fields. Although less frequently than AWS, Azure and GCP are also commonly asked. Popular tools for big data and cloud computing tasks include Docker and Kubernetes.
+
+### 7. Conclusion
+It is essential for anybody looking for work in the analytics industry to be aware of the latest trends and industry standards. Python, Java, SQL, and R are the most often required talents for data-related employment in the US, according the data examined for this project. In addition to being in great demand, additional technologies including Spark, Tableau, Scala, Excel, and C are also frequently sought.
+
+It's also important to notice that WFH possibilities are widely available and that remote employment opportunities are growing more common. However, it is significant to balance the advantages of living in a big city with the potential difficulties in getting employment because there is tremendous job seekers for jobs in big cities like New York and California.
+
+Additionally, the qualifications and responsibilities of various job categories are slightly different, thus job searchers should notice these variations in order to change their applications strategies. While data scientists need to be proficient in Python and R, data analysts need to be proficient in SQL, Tableau, and Excel. While professions in deep learning and natural language processing demand knowledge of both machine learning and natural language, big data and cloud computing positions demand for expertise in Java and cloud platforms like AWS.
+
+Job searchers should concentrate on developing their abilities in the tools and technologies that are most in demand as well as staying current with industry developments.
